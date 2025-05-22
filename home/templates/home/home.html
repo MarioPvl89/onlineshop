@@ -1,0 +1,73 @@
+{% extends 'home/base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="text-center mb-4">
+        <h1 class="display-5">Добро пожаловать</h1>
+        <p class="lead">Здесь мы обсуждаем наши товары</p>
+        <h4>
+            {% if user.is_authenticated %}
+                Привет, {{ user.username }}!
+                <a href="{% url 'catalog:logout' %}" class="btn btn-sm btn-outline-danger ms-3">Выйти</a>
+            {% else %}
+                Гость! <a href="{% url 'catalog:login' %}" class="btn btn-sm btn-outline-primary ms-2">Войти</a>
+            {% endif %}
+        </h4>
+    </div>
+
+    {% if user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Добавить комментарий</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_text" class="form-label">Ваш комментарий</label>
+                        {% render_field form.text class="form-control autosize" rows="1" placeholder="Напишите комментарий..." %}
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Отправить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <p class="text-center">Войдите, чтобы оставить комментарий.</p>
+    {% endif %}
+
+    <h3 class="mb-3">Комментарии:</h3>
+    {% if comments %}
+        <ul class="list-group">
+            {% for comment in comments %}
+                <li class="list-group-item">
+                    <strong>{{ comment.user.username }}</strong>
+                    <small class="text-muted float-end" id="comment-time-{{ comment.id }}" data-time="{{ comment.created_at|date:'c' }}">
+                        {{ comment.created_at|date:"d.m.Y H:i" }}
+                    </small>
+                    
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            document.querySelectorAll('[id^="comment-time-"]').forEach(function(element) {
+                                const commentTimeString = element.getAttribute("data-time");
+                                const commentTime = new Date(commentTimeString);
+                                const userTime = commentTime.toLocaleString('ru-RU', {
+                                    hour12: false,
+                                });
+                                element.innerText = userTime;
+                            });
+                        });
+                    </script>
+                    
+                    <p class="mt-2 mb-0">{{ comment.text }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Пока нет комментариев.</p>
+    {% endif %}
+</div>
+{% endblock %}

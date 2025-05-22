@@ -1,0 +1,61 @@
+{% extends "home/base.html" %}
+{% load static %}
+{% load cart_extras %}
+{% block content %}
+<h2>Корзина</h2>
+<div class="card-footer bg-white border-top-0 text-end">
+    <h5 class="text-success fw-bold">
+        <i class="bi bi-cash-stack me-2"></i>
+        Общая сумма: {{ total_price }} ₸
+    </h5>
+</div>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for item in cart_items %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <a href="{% url 'catalog:product' item.product.category.slug item.product.slug %}" class="text-decoration-none text-dark">
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" class="card-img-top" alt="{{ item.product.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item.product.name }}</h5>
+                        <p class="card-text text-muted">{{ item.product.description|truncatechars:80 }}</p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <strong class="text-primary">Цена: {{ item.product.sell_price }} ₸</strong><br>
+                        <strong class="text-danger">Итого: {{ item.product.sell_price|mul:item.quantity }} ₸</strong>
+                    </div>
+                </a>
+                <div class="p-2 d-flex justify-content-between align-items-center">
+                    <form action="{% url 'catalog:decrease_quantity' item.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                    </form>
+
+                    <span class="mx-2 fw-bold">{{ item.quantity }}</span>
+
+                    <form action="{% url 'catalog:increase_quantity' item.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="p-2">
+                    <a href="{% url 'catalog:remove_from_cart' item.id %}" class="btn btn-danger">
+                        <i class="bi bi-cart-dash me-1"></i> Удалить из корзины
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>У вас пока нет товаров в корзине.</p>
+    {% endfor %}
+</div>
+<a href="{% url 'catalog:catalog' 'all' %}" class="btn btn-outline-secondary mt-3">Вернуться к товарам</a>
+
+{% endblock %}
