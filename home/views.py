@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from .forms import CommentForm
-from .models import Comment, Products, Favorite, Cart
+from .models import Comment, Products, Favorite, Cart, Categories
 # from django.views.generic import DetailView, ListView
 from django.core.paginator import Paginator
 
@@ -68,22 +68,27 @@ def home(request):
     return render(request, 'home/home.html', {'form': form, 'comments': comments})
 
 
-def catalog(request, category_slug):
-    
+def catalog(request, category_slug=None):
+
     page = request.GET.get('page', 1)
+
+    selected_category = request.GET.get("category") or category_slug or "all"
     
-    if category_slug == "all":
+    if selected_category == "all":
         goods = Products.objects.all()
     else:
-        goods = get_list_or_404(Products.objects.filter(category__slug=category_slug))
+        goods = get_list_or_404(Products.objects.filter(category__slug=selected_category))
 
     paginator = Paginator(goods, 6)
     current_page = paginator.page(int(page))
 
+    categories = Categories.objects.all()
+
     context = {
         "title": "Home - Каталог",
         "goods": current_page,
-        "slug_url": category_slug
+        "slug_url": selected_category,
+        "categories": categories,
     }
     return render(request, "home/goods.html", context)
 
@@ -116,6 +121,32 @@ def product(request, category_slug, product_slug):
     }
 
     return render(request, "home/good_template.html", context=context)
+
+
+def product_default(request, product_slug):
+    product = get_object_or_404(Products, slug=product_slug)
+    comments = product.comments.all().order_by('-created_at')
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.product = product
+            comment.save()
+            return redirect('catalog:product_default', product_slug=product_slug)
+    else:
+        form = CommentForm() if request.user.is_authenticated else None
+
+    context = {
+        "product": product,
+        "comments": comments,
+        "form": form,
+        "category_slug": "all",
+        "title": f"{product.name} - Все товары"
+    }
+
+    return render(request, "home/good_template.html", context)
 
 
 @login_required
