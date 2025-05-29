@@ -153,7 +153,7 @@ def product_default(request, product_slug):
 def add_to_favorites(request, product_id):
     product = get_object_or_404(Products, id=product_id)
     Favorite.objects.get_or_create(user=request.user, product=product)
-    return redirect('catalog:catalog', category_slug=product.category.slug)
+    return redirect(request.META.get('HTTP_REFERER', 'catalog:catalog_default'))
 
 
 @login_required
@@ -163,7 +163,7 @@ def add_to_cart(request, product_id):
     if not created:
         cart_item.quantity += 1
         cart_item.save()
-    return redirect('catalog:catalog', category_slug=product.category.slug)
+    return redirect(request.META.get('HTTP_REFERER', 'catalog:catalog_default'))
 
 
 @login_required
@@ -177,7 +177,7 @@ def cart_detail(request):
 def remove_from_cart(request, cart_id):
     cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
     cart_item.delete()
-    return redirect('catalog:cart_detail')
+    return redirect(request.META.get('HTTP_REFERER', 'catalog:catalog_default'))
 
 
 @login_required
@@ -190,7 +190,7 @@ def favorite_list(request):
 def remove_from_favorite(request, favorite_id):
     favorite = get_object_or_404(Favorite, id=favorite_id, user=request.user)
     favorite.delete()
-    return redirect('catalog:favorite_list')
+    return redirect(request.META.get('HTTP_REFERER', 'catalog:catalog_default'))
 
 
 @login_required

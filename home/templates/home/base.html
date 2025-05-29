@@ -46,8 +46,20 @@
                 <a class="navbar-brand" href="{% url 'catalog:home' %}">Мой сайт</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'catalog:catalog' 'all' %}">Каталог</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="{% url 'catalog:catalog' 'all' %}" id="catalogDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Каталог
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="catalogDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'catalog:catalog' 'all' %}">Все товары</a>
+                                </li>
+                                {% for category in categories %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'catalog:catalog' category.slug %}">{{ category.name }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </li>
                         {% if user.is_authenticated %}
                             <li class="nav-item">
@@ -97,6 +109,24 @@
             });
         });
         </script>
-        
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdown = document.querySelector('.dropdown');
+
+        dropdown.addEventListener('mouseenter', function () {
+        const toggle = dropdown.querySelector('[data-bs-toggle="dropdown"]');
+        const menu = dropdown.querySelector('.dropdown-menu');
+
+        const bsDropdown = new bootstrap.Dropdown(toggle);
+        bsDropdown.show();
+
+        dropdown.addEventListener('mouseleave', function () {
+            bsDropdown.hide();
+        });
+        });
+    });
+    </script>
+
 </body>
 </html>
